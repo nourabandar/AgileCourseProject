@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Student{% endblock %}
+{% block content %}
+<h1>Book an appointment</h1>
+<p class="staff-name"><strong>{{ staff.name }}</strong><br>{{ staff.service }}</p>
+<p>Booking as {{ student.name }}. Appointments last 30 minutes.</p>
+
+{% if confirmation %}
+<div class="message success" role="status">
+  <strong>Appointment booked successfully.</strong>
+  <p>Date: {{ confirmation.date }}<br>Time: {{ confirmation.time }}</p>
+</div>
+{% endif %}
+
+<section class="panel" aria-labelledby="choose-date-heading">
+  <h2 id="choose-date-heading">Choose a date</h2>
+  <h3>Available dates in the next 14 days</h3>
+  {% if available_dates %}
+  <div class="date-options">
+    {% for day in available_dates %}
+    <a class="date-option" href="{{ url_for('student', date=day.date) }}" {% if date_value == day.date %}aria-current="date"{% endif %}>
+      {{ day.label }}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No dates have available times in the next 14 days. Try another date using the date picker.</p>
+  {% endif %}
+  <form method="get" action="{{ url_for('student') }}" class="date-form">
+    <div class="field">
+      <label for="selected-date">Appointment date</label>
+      <input type="date" id="selected-date" name="date" value="{{ date_value }}" min="{{ today }}" required onchange="if (this.value && this.checkValidity()) this.form.requestSubmit();" aria-describedby="date-help">
+      <small id="date-help">Available times update when you change the date.</small>
+    </div>
+    <noscript><button type="submit">Show times</button></noscript>
+  </form>
+</section>
+
+<section class="panel" aria-labelledby="choose-time-heading">
+  <h2 id="choose-time-heading">Choose a time</h2>
+  <p>Selected date: <strong>{{ date_value }}</strong>. Times use the 24-hour clock.</p>
+  {% if error %}<p class="message error" role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ url_for('book_appointment') }}">
+    <input type="hidden" name="date" value="{{ date_value }}">
+    <fieldset {% if not slots %}disabled{% endif %}>
+      <legend>Available 30-minute times</legend>
+      {% if slots %}
+      <div class="slot-options">
+        {% for slot in slots %}
+        <label class="slot-option">
+          <input type="radio" name="time" value="{{ slot.time }}" {% if selected_time == slot.time %}checked{% endif %} required>
+          <span>{{ slot.time }}–{{ slot.end }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p>No available times. Please choose another date.</p>
+      {% endif %}
+    </fieldset>
+    <div class="field">
+      <label for="reason">Reason for appointment</label>
+      <textarea id="reason" name="reason" rows="4" maxlength="500" required aria-describedby="reason-help">{{ reason }}</textarea>
+      <small id="reason-help">Required. Maximum 500 characters. Use fictional information for this demo.</small>
+    </div>
+    <button type="submit" {% if not slots %}disabled{% endif %}>Book Appointment</button>
+  </form>
+</section>
+{% endblock %}

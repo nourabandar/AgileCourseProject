@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Staff{% endblock %}
+{% block content %}
+<h1>Staff</h1>
+<p>Set recurring weekly hours and block dates or times when you are unavailable.</p>
+<div class="staff-sections">
+  <section id="weekly" class="panel" aria-labelledby="weekly-heading">
+    <h2 id="weekly-heading">Weekly Availability</h2>
+    {% for message in get_flashed_messages(category_filter=['weekly-success']) %}
+      <p class="message success" role="status">{{ message }}</p>
+    {% endfor %}
+    {% if availability_error %}<p class="message error" role="alert">{{ availability_error }}</p>{% endif %}
+    <h3>{{ 'Edit availability' if edit_id else 'Add availability' }}</h3>
+    <form method="post" action="{{ url_for('save_availability', range_id=edit_id) if edit_id else url_for('save_availability') }}">
+      <div class="field">
+        <label for="weekday">Day of week</label>
+        <select id="weekday" name="weekday" required>
+          {% for day in weekdays %}
+          <option value="{{ loop.index0 }}" {% if availability_values.get('weekday', '0') == loop.index0|string %}selected{% endif %}>{{ day }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="time-fields">
+        <div class="field">
+          <label for="availability-start">Start time</label>
+          <input id="availability-start" name="start_time" type="time" step="1800" value="{{ availability_values.get('start_time', '') }}" required>
+        </div>
+        <div class="field">
+          <label for="availability-end">End time</label>
+          <input id="availability-end" name="end_time" type="time" step="1800" value="{{ availability_values.get('end_time', '') }}" required>
+        </div>
+      </div>
+      <p class="help">Use 30-minute boundaries. Keep each range within one calendar day.</p>
+      <div class="actions">
+        <button type="submit">{{ 'Save Changes' if edit_id else 'Add Availability' }}</button>
+        {% if edit_id %}<a href="{{ url_for('staff', _anchor='weekly') }}">Cancel edit</a>{% endif %}
+      </div>
+    </form>
+    <h3>Saved weekly hours</h3>
+    {% if availability %}
+    <ul class="entry-list">
+      {% for entry in availability %}
+      <li>
+        <span><strong>{{ weekdays[entry.weekday] }}</strong><br>{{ entry.start_minute|clock }}–{{ entry.end_minute|clock }}</span>
+        <div class="actions">
+          <a href="{{ url_for('staff', edit=entry.id, _anchor='weekly') }}" aria-label="Edit {{ weekdays[entry.weekday] }} {{ entry.start_minute|clock }} to {{ entry.end_minute|clock }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_availability', range_id=entry.id) }}">
+            <button class="secondary" type="submit" aria-label="Delete {{ weekdays[entry.weekday] }} {{ entry.start_minute|clock }} to {{ entry.end_minute|clock }}">Delete</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p>No weekly availability saved. Add hours to make appointment times available.</p>{% endif %}
+  </section>
+
+  <section id="blocks" class="panel" aria-labelledby="blocks-heading">
+    <h2 id="blocks-heading">Blocked Dates and Times</h2>
+    {% for message in get_flashed_messages(category_filter=['block-success']) %}
+      <p class="message success" role="status">{{ message }}</p>
+    {% endfor %}
+    {% if block_error %}<p class="message error" role="alert">{{ block_error }}</p>{% endif %}
+    <form method="post" action="{{ url_for('add_block') }}">
+      <div class="field">
+        <label for="block-date">Date to block</label>
+        <input type="date" id="block-date" name="date" min="{{ today }}" value="{{ block_values.get('date', '') }}" required>
+      </div>
+      <label class="checkbox-label" for="all-day">
+        <input type="checkbox" id="all-day" name="all_day" value="1" {% if block_values.get('all_day') == '1' %}checked{% endif %}> All day
+      </label>
+      <div class="time-fields">
+        <div class="field">
+          <label for="block-start">Start time</label>
+          <input type="time" id="block-start" name="start_time" step="60" value="{{ block_values.get('start_time', '') }}" aria-describedby="block-help">
+        </div>
+        <div class="field">
+          <label for="block-end">End time</label>
+          <input type="time" id="block-end" name="end_time" step="60" value="{{ block_values.get('end_time', '') }}" aria-describedby="block-help">
+        </div>
+      </div>
+      <p class="help" id="block-help">Enter both times for a partial-day block. Times are ignored when All day is checked.</p>
+      <button type="submit">Block Time</button>
+    </form>
+    <h3>Saved blocked periods</h3>
+    {% if blocks %}
+    <ul class="entry-list">
+      {% for entry in blocks %}
+      <li>
+        <span><strong>{{ entry.block_date }}</strong><br>{% if entry.all_day %}All day{% else %}{{ entry.start_minute|clock }}–{{ entry.end_minute|clock }}{% endif %}</span>
+        <form method="post" action="{{ url_for('delete_block', block_id=entry.id) }}">
+          <button class="secondary" type="submit" aria-label="Unblock {{ entry.block_date }} {% if entry.all_day %}all day{% else %}{{ entry.start_minute|clock }} to {{ entry.end_minute|clock }}{% endif %}">Unblock</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}<p>No blocked periods saved.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

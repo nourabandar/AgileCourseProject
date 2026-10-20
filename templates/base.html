@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% endblock %} | University Appointment Booking System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="header-content">
+      <p class="app-title">University Appointment Booking System</p>
+      <nav aria-label="Main navigation">
+        <a href="{{ url_for('student') }}" {% if request.endpoint in ['student', 'book_appointment'] %}aria-current="page"{% endif %}>Student</a>
+        <a href="{{ url_for('staff') }}" {% if request.endpoint not in ['student', 'book_appointment'] %}aria-current="page"{% endif %}>Staff</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+  <footer>Local classroom demo · No authentication · All times are Asia/Riyadh (UTC+03:00).</footer>
+</body>
+</html>

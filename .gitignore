@@ -1,0 +1,33 @@
+# Virtual environments and Python output
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated SQLite databases, journals and local instance data
+instance/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Local secrets, editor state, temporary files and handoff archives
+.env
+.env.*
+.flaskenv
+!.env.example
+*.pem
+*.key
+.vscode/
+.idea/
+tmp/
+temp/
+*.tmp
+*.log
+*.zip
